@@ -22,6 +22,15 @@ package net.dv8tion.jda.api;
  */
 public enum AccountType
 {
+    /** A User-Account which can be used via the official Discord Client */
+    CLIENT(""),
+
     /** An OAuth2 Bot which was created by an application */
-    BOT
+    BOT("Bot ");
+
+    public final String prefix;
+
+    AccountType(String prefix) {
+        this.prefix = prefix;
+    }
 }

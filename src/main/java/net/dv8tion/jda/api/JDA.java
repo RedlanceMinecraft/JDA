@@ -1827,6 +1827,14 @@ public interface JDA extends IGuildChannelContainer<Channel>
     String getToken();
 
     /**
+     * @return Account type of token.
+     */
+    @Nonnull
+    default AccountType getAccountType() {
+        return AccountType.BOT;
+    }
+
+    /**
      * This value is the total amount of JSON responses that discord has sent.
      * <br>This value resets every time the websocket has to perform a full reconnect (not resume).
      *

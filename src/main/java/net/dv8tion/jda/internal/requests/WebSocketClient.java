@@ -842,7 +842,8 @@ public class WebSocketClient extends WebSocketAdapter implements WebSocketListen
     protected String getToken()
     {
         // all bot tokens are prefixed with "Bot "
-        return api.getToken().substring("Bot ".length());
+        return api.getToken()
+                .replace(api.getAccountType().prefix, "");
     }
 
     protected List<DataObject> convertPresencesReplace(long responseTotal, DataArray array)

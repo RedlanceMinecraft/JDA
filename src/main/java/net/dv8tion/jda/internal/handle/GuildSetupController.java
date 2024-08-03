@@ -21,6 +21,7 @@ import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.set.TLongSet;
 import gnu.trove.set.hash.TLongHashSet;
+import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.events.guild.GuildTimeoutEvent;
 import net.dv8tion.jda.api.events.guild.UnavailableGuildLeaveEvent;
 import net.dv8tion.jda.api.utils.MiscUtil;
@@ -133,11 +134,18 @@ public class GuildSetupController
         log.trace("Adding id to setup cache {}", id);
         GuildSetupNode node = new GuildSetupNode(id, this, GuildSetupNode.Type.INIT);
         setupNodes.put(id, node);
+        if (api.getAccountType() == AccountType.CLIENT)
+        {
         node.handleReady(obj);
+        }
         if (node.markedUnavailable)
         {
             incompleteCount--;
             tryChunking();
+        }
+        if (api.getAccountType() == AccountType.CLIENT)
+        {
+            onSync(id, obj);
         }
     }
 
@@ -366,6 +374,10 @@ public class GuildSetupController
             sendChunkRequest(id);
             return true;
         });
+        if (api.getAccountType() == AccountType.CLIENT)
+        {
+            sendChunkRequest(chunkingGuilds); // Is it really necessary?
+        }
         chunkingGuilds.clear();
     }
 

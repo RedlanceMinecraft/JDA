@@ -188,7 +188,25 @@ public class GuildSetupNode
         cachedEvents.clear();
     }
 
-    void handleReady(DataObject obj) {}
+    void handleReady(DataObject obj) {
+        if (partialGuild == null)
+        {
+            partialGuild = obj;
+        }
+        else
+        {
+            for (String key : obj.keys())
+            {
+                partialGuild.put(key, obj.opt(key).orElse(null));
+            }
+        }
+
+        markedUnavailable = partialGuild.getBoolean("unavailable");
+        if (markedUnavailable)
+        {
+            updateStatus(GuildSetupController.Status.UNAVAILABLE);
+        }
+    }
 
     void handleCreate(DataObject obj)
     {

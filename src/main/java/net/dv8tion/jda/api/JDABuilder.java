@@ -80,6 +80,7 @@ public class JDABuilder
     protected OkHttpClient.Builder httpClientBuilder = null;
     protected OkHttpClient httpClient = null;
     protected WebSocketFactory wsFactory = null;
+    protected AccountType accountType = null;
     protected String token = null;
     protected IEventManager eventManager = null;
     protected IAudioSendFactory audioSendFactory = null;
@@ -98,8 +99,9 @@ public class JDABuilder
     protected GatewayEncoding encoding = GatewayEncoding.JSON;
     protected RestConfig restConfig = new RestConfig();
 
-    private JDABuilder(@Nullable String token, int intents)
+    private JDABuilder(@Nullable AccountType accountType, @Nullable String token, int intents)
     {
+        this.accountType = accountType;
         this.token = token;
         this.intents = 1 | intents;
     }
@@ -127,7 +129,17 @@ public class JDABuilder
     @CheckReturnValue
     public static JDABuilder createDefault(@Nullable String token)
     {
-        return new JDABuilder(token, GatewayIntent.DEFAULT).applyDefault();
+        return createDefault(AccountType.BOT, token);
+    }
+
+    /**
+     * @see    #createDefault(String)
+     */
+    @Nonnull
+    @CheckReturnValue
+    public static JDABuilder createDefault(@Nonnull AccountType type, @Nullable String token)
+    {
+        return new JDABuilder(type, token, GatewayIntent.DEFAULT).applyDefault();
     }
 
     /**
@@ -243,7 +255,17 @@ public class JDABuilder
     @CheckReturnValue
     public static JDABuilder createLight(@Nullable String token)
     {
-        return new JDABuilder(token, GatewayIntent.DEFAULT).applyLight();
+        return createLight(AccountType.BOT, token);
+    }
+
+    /**
+     * @see    #createLight(String)
+     */
+    @Nonnull
+    @CheckReturnValue
+    public static JDABuilder createLight(@Nonnull AccountType type, @Nullable String token)
+    {
+        return new JDABuilder(type, token, GatewayIntent.DEFAULT).applyLight();
     }
 
     /**
@@ -430,7 +452,17 @@ public class JDABuilder
     @CheckReturnValue
     public static JDABuilder create(@Nullable String token, @Nonnull GatewayIntent intent, @Nonnull GatewayIntent... intents)
     {
-        return new JDABuilder(token, GatewayIntent.getRaw(intent, intents)).applyIntents();
+        return create(AccountType.BOT, token, intent, intents);
+    }
+
+    /**
+     * @see   #create(String, GatewayIntent, GatewayIntent...)
+     */
+    @Nonnull
+    @CheckReturnValue
+    public static JDABuilder create(@Nonnull AccountType type, @Nullable String token, @Nonnull GatewayIntent intent, @Nonnull GatewayIntent... intents)
+    {
+        return new JDABuilder(type, token, GatewayIntent.getRaw(intent, intents)).applyIntents();
     }
 
     /**
@@ -461,7 +493,17 @@ public class JDABuilder
     @CheckReturnValue
     public static JDABuilder create(@Nullable String token, @Nonnull Collection<GatewayIntent> intents)
     {
-        return new JDABuilder(token, GatewayIntent.getRaw(intents)).applyIntents();
+        return create(AccountType.BOT, token, intents);
+    }
+
+    /**
+     * @see    #create(String, Collection)
+     */
+    @Nonnull
+    @CheckReturnValue
+    public static JDABuilder create(@Nonnull AccountType type, @Nullable String token, @Nonnull Collection<GatewayIntent> intents)
+    {
+        return new JDABuilder(type, token, GatewayIntent.getRaw(intents)).applyIntents();
     }
 
     private JDABuilder applyIntents()
@@ -1813,7 +1855,7 @@ public class JDABuilder
         if (controller == null && shardInfo != null)
             controller = new ConcurrentSessionController();
 
-        AuthorizationConfig authConfig = new AuthorizationConfig(token);
+        AuthorizationConfig authConfig = new AuthorizationConfig(accountType, token);
         ThreadingConfig threadingConfig = new ThreadingConfig();
         threadingConfig.setCallbackPool(callbackPool, shutdownCallbackPool);
         threadingConfig.setGatewayPool(mainWsPool, shutdownMainWsPool);

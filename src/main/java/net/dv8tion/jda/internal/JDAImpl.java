@@ -18,6 +18,7 @@ package net.dv8tion.jda.internal;
 
 import com.neovisionaries.ws.client.WebSocketFactory;
 import gnu.trove.set.TLongSet;
+import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.GatewayEncoding;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -365,6 +366,11 @@ public class JDAImpl implements JDA
         this.authConfig.setToken(token);
     }
 
+    public void setToken(AccountType type, String token)
+    {
+        this.authConfig.setToken(type, token);
+    }
+
     public void setStatus(Status status)
     {
         StatusChangeEvent event = MiscUtil.locked(statusLock, () -> {
@@ -426,6 +432,12 @@ public class JDAImpl implements JDA
         return authConfig.getToken();
     }
 
+    @Nonnull
+    @Override
+    public AccountType getAccountType()
+    {
+        return authConfig.getAccountType();
+    }
 
     @Override
     public boolean isBulkDeleteSplittingEnabled()
