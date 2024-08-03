@@ -29,6 +29,7 @@ public enum EmbedType
     LINK("link"),
     RICH("rich"),
     AUTO_MODERATION("auto_moderation_message"),
+    POLL_RESULT("poll_result"),
     UNKNOWN("");
 
     private final String key;
