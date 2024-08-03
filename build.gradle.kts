@@ -70,7 +70,7 @@ val isNewVersion = previousVersion != versionObj
 
 // Use normal version string for new releases and commitHash for other builds
 project.version = "$versionObj" + if (isNewVersion) "" else "_$commitHash"
-project.group = "net.dv8tion"
+project.group = "org.redlance.thirdparty"
 
 
 base {
