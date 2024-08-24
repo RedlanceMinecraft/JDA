@@ -26,6 +26,8 @@ public enum EmbedType
 {
     IMAGE("image"),
     VIDEO("video"),
+    GIFV("gifv"),
+    ARTICLE("article"),
     LINK("link"),
     RICH("rich"),
     AUTO_MODERATION("auto_moderation_message"),
@@ -33,6 +35,7 @@ public enum EmbedType
     UNKNOWN("");
 
     private final String key;
+
     EmbedType(String key)
     {
         this.key = key;

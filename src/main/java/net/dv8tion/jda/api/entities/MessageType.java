@@ -240,7 +240,7 @@ public enum MessageType
     PURCHASE_NOTIFICATION(44, true, true),
 
     /**
-     * Sent when the poll ends.
+     * Sent when a poll completed in the channel.
      */
     POLL_RESULT(46, true, true),
 
