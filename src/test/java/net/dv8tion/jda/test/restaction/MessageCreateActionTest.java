@@ -19,6 +19,7 @@ package net.dv8tion.jda.test.restaction;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageReference;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -32,23 +33,32 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessagePollBuilder;
 import net.dv8tion.jda.api.utils.messages.MessagePollData;
 import net.dv8tion.jda.internal.requests.restaction.MessageCreateActionImpl;
+import net.dv8tion.jda.test.Constants;
 import net.dv8tion.jda.test.IntegrationTest;
+import okhttp3.MediaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
+import java.util.Base64;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
 import static net.dv8tion.jda.api.requests.Method.POST;
 import static net.dv8tion.jda.test.restaction.MessageCreateActionTest.Data.emoji;
 import static net.dv8tion.jda.test.restaction.MessageCreateActionTest.Data.pollAnswer;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.when;
 
 public class MessageCreateActionTest extends IntegrationTest
 {
+    private static final byte[] voiceMessageAudio = {1, 2, 3};
+    private static final String voiceMessageMediaType = "audio/ogg";
+    private static final String voiceMessageFilename = "voice-message.ogg";
+
     private static final String FIXED_CHANNEL_ID = "1234567890";
     private static final String FIXED_NONCE = "123456";
     private static final String ENDPOINT_URL = "channels/" + FIXED_CHANNEL_ID + "/messages";
@@ -56,9 +66,16 @@ public class MessageCreateActionTest extends IntegrationTest
     @Mock
     protected MessageChannel channel;
 
-    private static DataObject defaultMessageRequest()
+    private static DataObject minimalMessageRequest()
     {
         return DataObject.empty()
+            .put("enforce_nonce", true)
+            .put("flags", 0)
+            .put("nonce", FIXED_NONCE);
+    }
+    private static DataObject defaultMessageRequest()
+    {
+        return minimalMessageRequest()
                 .put("allowed_mentions", DataObject.empty()
                     .put("parse", DataArray.empty()
                         .add("users")
@@ -69,9 +86,6 @@ public class MessageCreateActionTest extends IntegrationTest
                 .put("content", "")
                 .put("embeds", DataArray.empty())
                 .put("poll", null)
-                .put("enforce_nonce", true)
-                .put("flags", 0)
-                .put("nonce", FIXED_NONCE)
                 .put("tts", false);
     }
 
@@ -143,6 +157,97 @@ public class MessageCreateActionTest extends IntegrationTest
     }
 
     @Test
+    void testSendVoiceMessage()
+    {
+        MessageCreateActionImpl action = new MessageCreateActionImpl(channel);
+
+        FileUpload file = Data.getVoiceMessageFileUpload(voiceMessageAudio, voiceMessageFilename, voiceMessageMediaType);
+
+        assertThat(file.isVoiceMessage()).isTrue();
+
+        action.addFiles(file);
+
+        assertThatRequestFrom(action)
+            .hasMultipartBody()
+            .hasBodyEqualTo(
+                defaultMessageRequest()
+                    .put("flags", 1 << 13)
+                    .put("attachments", DataArray.empty()
+                        .add(Data.getVoiceMessageAttachmentBody(voiceMessageMediaType, voiceMessageFilename, voiceMessageAudio)))
+            ).whenQueueCalled();
+    }
+
+    @Test
+    void testSuppressVoiceMessage()
+    {
+        MessageCreateActionImpl action = new MessageCreateActionImpl(channel);
+
+        FileUpload file = Data.getVoiceMessageFileUpload(voiceMessageAudio, voiceMessageFilename, voiceMessageMediaType);
+
+        assertThat(file.isVoiceMessage()).isTrue();
+
+        action.addFiles(file);
+        action.setVoiceMessage(false);
+
+        assertThatRequestFrom(action)
+            .hasMultipartBody()
+            .hasBodyEqualTo(
+                defaultMessageRequest()
+                    .put("flags", 0)
+                    .put("attachments", DataArray.empty()
+                        .add(Data.getVoiceMessageAttachmentBody(voiceMessageMediaType, voiceMessageFilename, voiceMessageAudio)))
+            ).whenQueueCalled();
+    }
+
+    @Test
+    void testReplyWithContent()
+    {
+        MessageCreateActionImpl action = new MessageCreateActionImpl(channel);
+
+        long messageId = random.nextLong();
+        action.setMessageReference(messageId);
+        action.setContent("test content");
+        action.failOnInvalidReply(true);
+
+        assertThatRequestFrom(action)
+            .hasBodyEqualTo(defaultMessageRequest()
+                .put("content", "test content")
+                .put("message_reference", DataObject.empty()
+                    .put("type", 0)
+                    .put("channel_id", channel.getId())
+                    .put("message_id", Long.toUnsignedString(messageId))
+                    .put("fail_if_not_exists", true)))
+            .whenQueueCalled();
+    }
+
+    @Test
+    void testForwardWithFlags()
+    {
+        MessageCreateActionImpl action = new MessageCreateActionImpl(channel);
+
+        long messageId = random.nextLong();
+        action.setMessageReference(
+            MessageReference.MessageReferenceType.FORWARD,
+            Constants.GUILD_ID,
+            Constants.CHANNEL_ID,
+            messageId
+        );
+
+        action.setSuppressedNotifications(true);
+
+        assertThatRequestFrom(action)
+            .hasBodyEqualTo(minimalMessageRequest()
+                .put("flags", 1 << 12)
+                .put("message_reference", DataObject.empty()
+                    .put("type", 1)
+                    .put("guild_id", Long.toUnsignedString(Constants.GUILD_ID))
+                    .put("channel_id", Long.toUnsignedString(Constants.CHANNEL_ID))
+                    .put("message_id", Long.toUnsignedString(messageId))
+                    .put("fail_if_not_exists", false)))
+            .whenQueueCalled();
+    }
+
+    @Test
     void testFullFromBuilder()
     {
         MessageCreateData data = new MessageCreateBuilder()
@@ -161,6 +266,21 @@ public class MessageCreateActionTest extends IntegrationTest
             .whenQueueCalled();
     }
 
+    @Test
+    void testSetMessageReferenceNull()
+    {
+        MessageCreateActionImpl action = new MessageCreateActionImpl(channel);
+
+        action.setMessageReference((String) null);
+        action.setContent("test content");
+        action.failOnInvalidReply(true);
+
+        assertThatRequestFrom(action)
+            .hasBodyEqualTo(defaultMessageRequest()
+                .put("content", "test content"))
+            .whenQueueCalled();
+    }
+
     @Nonnull
     protected DataObject normalizeRequestBody(@Nonnull DataObject body)
     {
@@ -169,6 +289,23 @@ public class MessageCreateActionTest extends IntegrationTest
 
     static class Data
     {
+        static FileUpload getVoiceMessageFileUpload(byte[] fakeAudio, String fileName, String audioMediaType)
+        {
+            return FileUpload.fromData(fakeAudio, fileName)
+                    .asVoiceMessage(MediaType.parse(audioMediaType), fakeAudio, Duration.ofSeconds(3));
+        }
+
+        static DataObject getVoiceMessageAttachmentBody(String audioMediaType, String fileName, byte[] fakeAudio)
+        {
+            return DataObject.empty()
+                    .put("description", "")
+                    .put("content_type", audioMediaType)
+                    .put("duration_secs", 3.0)
+                    .put("filename", fileName)
+                    .put("id", 0)
+                    .put("waveform", new String(Base64.getEncoder().encode(fakeAudio)));
+        }
+
         static DataObject pollAnswer(long id, String title, DataObject emoji)
         {
             return DataObject.empty()
