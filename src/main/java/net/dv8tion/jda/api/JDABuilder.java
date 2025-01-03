@@ -1368,7 +1368,7 @@ public class JDABuilder
     @SuppressWarnings("ConstantConditions") // we have to enforce the nonnull at runtime
     public JDABuilder setStatus(@Nonnull OnlineStatus status)
     {
-        if (status == null || status == OnlineStatus.UNKNOWN)
+        if (status == null || (status == OnlineStatus.UNKNOWN && accountType == AccountType.BOT))
             throw new IllegalArgumentException("OnlineStatus cannot be null or unknown!");
         this.status = status;
         return this;

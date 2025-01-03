@@ -16,6 +16,7 @@
 
 package net.dv8tion.jda.internal.managers;
 
+import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -108,6 +109,7 @@ public class PresenceImpl implements Presence
     @Override
     public void setPresence(OnlineStatus status, Activity activity, boolean idle)
     {
+        if (getJDA().getAccountType() == AccountType.BOT)
         Checks.check(status != OnlineStatus.UNKNOWN,
                 "Cannot set the presence status to an unknown OnlineStatus!");
         if (status == OnlineStatus.OFFLINE || status == null)

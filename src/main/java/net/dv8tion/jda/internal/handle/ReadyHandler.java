@@ -87,6 +87,7 @@ public class ReadyHandler extends SocketHandler
             switch (type)
             {
                 case PRIVATE:
+                case GROUP:
                     builder.createPrivateChannel(chan);
                     break;
                 default:

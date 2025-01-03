@@ -49,7 +49,7 @@ public enum OnlineStatus
     /**
      * Placeholder for possible future online status values that are not listed here yet.
      */
-    UNKNOWN("");
+    UNKNOWN("unknown");
 
     private final String key;
 
