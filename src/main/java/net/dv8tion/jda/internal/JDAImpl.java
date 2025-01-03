@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.GatewayEncoding;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.Platform;
 import net.dv8tion.jda.api.audio.factory.DefaultSendFactory;
 import net.dv8tion.jda.api.audio.factory.IAudioSendFactory;
 import net.dv8tion.jda.api.audio.hooks.ConnectionStatus;
@@ -110,6 +111,7 @@ public class JDAImpl implements JDA
     protected final AbstractCacheView<AudioManager> audioManagers = new CacheView.SimpleCacheView<>(AudioManager.class, m -> m.getGuild().getName());
 
     protected final PresenceImpl presence;
+    protected final Platform platform;
     protected final Thread shutdownHook;
     protected final EntityBuilder entityBuilder = new EntityBuilder(this);
     protected final EventCache eventCache;
@@ -154,6 +156,13 @@ public class JDAImpl implements JDA
             AuthorizationConfig authConfig, SessionConfig sessionConfig,
             ThreadingConfig threadConfig, MetaConfig metaConfig, RestConfig restConfig)
     {
+        this(authConfig, sessionConfig, threadConfig, metaConfig, restConfig, Platform.DESKTOP);
+    }
+
+    public JDAImpl(
+            AuthorizationConfig authConfig, SessionConfig sessionConfig,
+            ThreadingConfig threadConfig, MetaConfig metaConfig, RestConfig restConfig, Platform platform)
+    {
         this.authConfig = authConfig;
         this.threadConfig = threadConfig == null ? ThreadingConfig.getDefault() : threadConfig;
         this.sessionConfig = sessionConfig == null ? SessionConfig.getDefault() : sessionConfig;
@@ -161,6 +170,7 @@ public class JDAImpl implements JDA
         this.restConfig = restConfig == null ? new RestConfig() : restConfig;
         this.shutdownHook = this.metaConfig.isUseShutdownHook() ? new Thread(this::shutdownNow, "JDA Shutdown Hook") : null;
         this.presence = new PresenceImpl(this);
+        this.platform = platform;
         this.guildSetupController = new GuildSetupController(this);
         this.audioController = new DirectAudioControllerImpl(this);
         this.eventCache = new EventCache();
@@ -1051,6 +1061,13 @@ public class JDAImpl implements JDA
     public Presence getPresence()
     {
         return presence;
+    }
+
+    @Nonnull
+    @Override
+    public Platform getPlatform()
+    {
+        return platform;
     }
 
     @Nonnull

@@ -88,6 +88,7 @@ public class JDABuilder
     protected Compression compression = Compression.ZLIB;
     protected Activity activity = null;
     protected OnlineStatus status = OnlineStatus.ONLINE;
+    protected Platform platform = Platform.DESKTOP;
     protected boolean idle = false;
     protected int maxReconnectDelay = 900;
     protected int largeThreshold = 250;
@@ -1374,6 +1375,27 @@ public class JDABuilder
     }
 
     /**
+     * Sets the {@link net.dv8tion.jda.api.Platform Platform} our connection will display.
+     *
+     * @param  platform
+     *         Not-null Platform (default desktop)
+     *
+     * @throws IllegalArgumentException
+     *         if the provided Platform is null
+     *
+     * @return The JDABuilder instance. Useful for chaining.
+     */
+    @Nonnull
+    @SuppressWarnings("ConstantConditions") // we have to enforce the nonnull at runtime
+    public JDABuilder setPlatform(@Nonnull Platform platform)
+    {
+        if (platform == null)
+            throw new IllegalArgumentException("Platform cannot be null!");
+        this.platform = platform;
+        return this;
+    }
+
+    /**
      * Adds all provided listeners to the list of listeners that will be used to populate the {@link net.dv8tion.jda.api.JDA JDA} object.
      * <br>This uses the {@link net.dv8tion.jda.api.hooks.InterfacedEventManager InterfacedEventListener} by default.
      * <br>To switch to the {@link net.dv8tion.jda.api.hooks.AnnotatedEventManager AnnotatedEventManager},
@@ -1869,7 +1891,7 @@ public class JDABuilder
         SessionConfig sessionConfig = new SessionConfig(controller, httpClient, wsFactory, voiceDispatchInterceptor, flags, maxReconnectDelay, largeThreshold);
         MetaConfig metaConfig = new MetaConfig(maxBufferSize, contextMap, cacheFlags, flags);
 
-        JDAImpl jda = new JDAImpl(authConfig, sessionConfig, threadingConfig, metaConfig, restConfig);
+        JDAImpl jda = new JDAImpl(authConfig, sessionConfig, threadingConfig, metaConfig, restConfig, platform);
         jda.setMemberCachePolicy(memberCachePolicy);
         // We can only do member chunking with the GUILD_MEMBERS intent
         if ((intents & GatewayIntent.GUILD_MEMBERS.getRawValue()) == 0)

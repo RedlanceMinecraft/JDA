@@ -1873,6 +1873,14 @@ public interface JDA extends IGuildChannelContainer<Channel>
     Presence getPresence();
 
     /**
+     * The {@link net.dv8tion.jda.api.Platform Platform} for the current session.
+     *
+     * @return The never-null {@link net.dv8tion.jda.api.Platform Platform} for this session.
+     */
+    @Nonnull
+    Platform getPlatform();
+
+    /**
      * The shard information used when creating this instance of JDA.
      * <br>Represents the information provided to {@link net.dv8tion.jda.api.JDABuilder#useSharding(int, int)}.
      *

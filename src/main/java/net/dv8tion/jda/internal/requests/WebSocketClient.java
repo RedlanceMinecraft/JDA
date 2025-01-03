@@ -752,8 +752,8 @@ public class WebSocketClient extends WebSocketAdapter implements WebSocketListen
         PresenceImpl presenceObj = (PresenceImpl) api.getPresence();
         DataObject connectionProperties = DataObject.empty()
             .put("os", System.getProperty("os.name"))
-            .put("browser", "JDA")
-            .put("device", "JDA");
+            .put("browser", api.getPlatform().getKey())
+            .put("has_client_mods", false); // :D
         DataObject payload = DataObject.empty()
             .put("presence", presenceObj.getFullPresence())
             .put("token", getToken())
