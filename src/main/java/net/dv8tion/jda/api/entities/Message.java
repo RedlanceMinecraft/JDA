@@ -142,11 +142,11 @@ public interface Message extends ISnowflake, Formattable
     String JUMP_URL = "https://discord.com/channels/%s/%s/%s";
 
     /**
-     * The maximum sendable file size (25 MiB)
+     * The maximum sendable file size (10 MiB)
      *
      *  @see MessageRequest#setFiles(Collection)
      */
-    int MAX_FILE_SIZE = 25 << 20;
+    int MAX_FILE_SIZE = 10 << 20;
 
     /**
      * The maximum amount of files sendable within a single message ({@value})
@@ -762,7 +762,7 @@ public interface Message extends ISnowflake, Formattable
      * @throws IllegalArgumentException
      *         If the id is null
      *
-     * @return The {@link Button} or null of no button with that ID is present on this message
+     * @return The {@link Button} or null if no button with that ID is present on this message
      */
     @Nullable
     default Button getButtonById(@Nonnull String id)
