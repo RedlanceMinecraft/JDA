@@ -156,7 +156,7 @@ public class JDAImpl implements JDA
             AuthorizationConfig authConfig, SessionConfig sessionConfig,
             ThreadingConfig threadConfig, MetaConfig metaConfig, RestConfig restConfig)
     {
-        this(authConfig, sessionConfig, threadConfig, metaConfig, restConfig, Platform.DESKTOP);
+        this(authConfig, sessionConfig, threadConfig, metaConfig, restConfig, Platform.JDA);
     }
 
     public JDAImpl(

@@ -88,7 +88,7 @@ public class JDABuilder
     protected Compression compression = Compression.ZLIB;
     protected Activity activity = null;
     protected OnlineStatus status = OnlineStatus.ONLINE;
-    protected Platform platform = Platform.DESKTOP;
+    protected Platform platform = Platform.JDA;
     protected boolean idle = false;
     protected int maxReconnectDelay = 900;
     protected int largeThreshold = 250;

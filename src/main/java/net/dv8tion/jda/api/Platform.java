@@ -7,6 +7,11 @@ import javax.annotation.Nonnull;
  */
 public enum Platform {
     /**
+     * Default
+     */
+    JDA("JDA"),
+
+    /**
      *
      */
     DESKTOP("Discord Client"),
@@ -46,12 +51,12 @@ public enum Platform {
 
     /**
      * Will get the {@link net.dv8tion.jda.api.Platform Platform} from the provided key.
-     * <br>If the provided key does not have a matching Platform, this will return {@link net.dv8tion.jda.api.Platform#DESKTOP DESKTOP}
+     * <br>If the provided key does not have a matching Platform, this will return {@link net.dv8tion.jda.api.Platform#JDA JDA}
      *
      * @param  key
      *         The key relating to the {@link net.dv8tion.jda.api.Platform Platform} we wish to retrieve.
      *
-     * @return The matching {@link net.dv8tion.jda.api.Platform Platform}. If there is no match, returns {@link net.dv8tion.jda.api.Platform#DESKTOP DESKTOP}.
+     * @return The matching {@link net.dv8tion.jda.api.Platform Platform}. If there is no match, returns {@link net.dv8tion.jda.api.Platform#JDA JDA}.
      */
     @Nonnull
     public static Platform fromKey(@Nonnull String key)
@@ -63,6 +68,6 @@ public enum Platform {
                 return platform;
             }
         }
-        return Platform.DESKTOP;
+        return Platform.JDA;
     }
 }
