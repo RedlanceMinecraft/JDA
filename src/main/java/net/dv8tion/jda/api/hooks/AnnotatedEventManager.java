@@ -55,7 +55,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class AnnotatedEventManager implements IEventManager
 {
     private static final Logger LOGGER = JDALogger.getLog(AnnotatedEventManager.class);
-    private final Set<Object> listeners = ConcurrentHashMap.newKeySet();
+    protected final Set<Object> listeners = ConcurrentHashMap.newKeySet();
     private final Map<Class<?>, Map<Object, List<Method>>> methods = new ConcurrentHashMap<>();
 
     @Override

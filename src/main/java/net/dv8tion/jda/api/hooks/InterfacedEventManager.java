@@ -42,7 +42,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class InterfacedEventManager implements IEventManager
 {
-    private final CopyOnWriteArrayList<EventListener> listeners = new CopyOnWriteArrayList<>();
+    protected final CopyOnWriteArrayList<EventListener> listeners = new CopyOnWriteArrayList<>();
 
     public InterfacedEventManager()
     {
