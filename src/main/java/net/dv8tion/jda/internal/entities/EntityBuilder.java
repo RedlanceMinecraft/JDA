@@ -250,6 +250,11 @@ public class EntityBuilder extends AbstractEntityBuilder
         }
     }
 
+    public GuildImpl createGuild(DataObject guildJson)
+    {
+        return createGuild(guildJson.getUnsignedLong("id"), guildJson, new TLongObjectHashMap<>(), 0);
+    }
+
     public GuildImpl createGuild(long guildId, DataObject guildJson, TLongObjectMap<DataObject> members, int memberCount)
     {
         final GuildImpl guildObj = new GuildImpl(getJDA(), guildId);
@@ -261,11 +266,11 @@ public class EntityBuilder extends AbstractEntityBuilder
         final String bannerId = guildJson.getString("banner", null);
         final String locale = guildJson.getString("preferred_locale", "en-US");
         final DataArray roleArray = guildJson.getArray("roles");
-        final DataArray channelArray = guildJson.getArray("channels");
-        final DataArray threadArray = guildJson.getArray("threads");
-        final DataArray scheduledEventsArray = guildJson.getArray("guild_scheduled_events");
+        final DataArray channelArray = guildJson.optArray("channels").orElseGet(DataArray::empty);
+        final DataArray threadArray = guildJson.optArray("threads").orElseGet(DataArray::empty);
+        final DataArray scheduledEventsArray = guildJson.optArray("guild_scheduled_events").orElseGet(DataArray::empty);
         final DataArray emojisArray = guildJson.getArray("emojis");
-        final DataArray voiceStateArray = guildJson.getArray("voice_states");
+        final DataArray voiceStateArray = guildJson.optArray("voice_states").orElseGet(DataArray::empty);
         final Optional<DataArray> stickersArray = guildJson.optArray("stickers");
         final Optional<DataArray> featuresArray = guildJson.optArray("features");
         final Optional<DataArray> presencesArray = guildJson.optArray("presences");
