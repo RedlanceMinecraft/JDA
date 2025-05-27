@@ -36,6 +36,8 @@ import net.dv8tion.jda.internal.entities.InteractionEntityBuilder;
 import net.dv8tion.jda.internal.entities.MemberImpl;
 import net.dv8tion.jda.internal.entities.detached.DetachedGuildImpl;
 import net.dv8tion.jda.internal.utils.Helpers;
+import net.dv8tion.jda.internal.utils.JDALogger;
+import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,6 +45,7 @@ import java.util.List;
 
 public class InteractionImpl implements Interaction
 {
+    public static final Logger LOG = JDALogger.getLog(InteractionImpl.class);
     protected final long id;
     protected final long channelId;
     protected final int type;
@@ -94,7 +97,7 @@ public class InteractionImpl implements Interaction
             if (channel == null && channelType.isThread())
                 channel = api.getEntityBuilder().createThreadChannel((GuildImpl) guild, channelJson, guild.getIdLong(), false);
             if (channel == null)
-                throw new IllegalStateException("Failed to create channel instance for interaction! Channel Type: " + channelJson.getInt("type"));
+                LOG.error("Failed to create channel instance for interaction! Channel Type: {}", channelJson.getInt("type"));
             this.channel = channel;
         }
         else if (guild instanceof DetachedGuildImpl)
@@ -107,7 +110,7 @@ public class InteractionImpl implements Interaction
             else
                 channel = interactionEntityBuilder.createGuildChannel(guild, channelJson);
             if (channel == null)
-                throw new IllegalStateException("Failed to create channel instance for interaction! Channel Type: " + channelJson.getInt("type"));
+                LOG.error("Failed to create channel instance for interaction! Channel Type: {}", channelJson.getInt("type"));
         }
         else
         {
