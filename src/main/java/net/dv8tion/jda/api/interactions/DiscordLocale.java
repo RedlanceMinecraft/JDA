@@ -100,7 +100,12 @@ public enum DiscordLocale
     @Nonnull
     public Locale toLocale()
     {
-        return Locale.forLanguageTag(getLocale());
+        String localeCode = getLocale();
+        if (!localeCode.contains("-") && localeCode.length() == 2)
+        {
+            return Locale.forLanguageTag(localeCode + "-" + localeCode);
+        }
+        return Locale.forLanguageTag(localeCode);
     }
 
     /**
