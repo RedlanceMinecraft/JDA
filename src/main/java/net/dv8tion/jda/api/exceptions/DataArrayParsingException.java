@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package net.dv8tion.jda.api.interactions.modals;
+package net.dv8tion.jda.api.exceptions;
 
-import net.dv8tion.jda.api.components.Component;
-import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.utils.data.DataArray;
 
 import javax.annotation.Nonnull;
 
-/**
- * Represents a component that can be added directly to a modal, this includes:
- * <ul>
- *     <li>{@link ActionRow}</li>
- * </ul>
- */
-public interface ModalTopLevelComponent extends Component
+public class DataArrayParsingException extends ParsingException
 {
+    private final DataArray data;
+
+    public DataArrayParsingException(@Nonnull DataArray data, @Nonnull String message)
+    {
+        super(message + "\n" + data.toShallowString());
+        this.data = data;
+    }
+
     @Nonnull
-    @Override
-    ModalTopLevelComponent withUniqueId(int uniqueId);
+    public DataArray getData()
+    {
+        return data;
+    }
 }

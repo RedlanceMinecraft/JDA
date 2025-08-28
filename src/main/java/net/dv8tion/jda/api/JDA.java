@@ -789,7 +789,7 @@ public interface JDA extends IGuildChannelContainer<Channel>
      * jda.updateCommands()
      *   .addCommands(Commands.slash("ping", "Gives the current ping"))
      *   .addCommands(Commands.slash("ban", "Ban the target user")
-     *     .setGuildOnly(true)
+     *     .setContexts(InteractionContextType.GUILD)
      *     .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
      *     .addOption(OptionType.USER, "user", "The user to ban", true))
      *   .queue();
@@ -916,59 +916,6 @@ public interface JDA extends IGuildChannelContainer<Channel>
     @Nonnull
     @CheckReturnValue
     RestAction<List<RoleConnectionMetadata>> updateRoleConnectionMetadata(@Nonnull Collection<? extends RoleConnectionMetadata> records);
-
-    /**
-     * Constructs a new {@link Guild Guild} with the specified name
-     * <br>Use the returned {@link GuildAction GuildAction} to provide
-     * further details and settings for the resulting Guild!
-     *
-     * <p>This RestAction does not provide the resulting Guild!
-     * It will be in a following {@link net.dv8tion.jda.api.events.guild.GuildJoinEvent GuildJoinEvent}.
-     *
-     * @param  name
-     *         The name of the resulting guild
-     *
-     * @throws java.lang.IllegalStateException
-     *         If the currently logged in account is in 10 or more guilds
-     * @throws java.lang.IllegalArgumentException
-     *         If the provided name is empty, {@code null} or not between 2-100 characters
-     *
-     * @return {@link GuildAction GuildAction}
-     *         <br>Allows for setting various details for the resulting Guild
-     */
-    @Nonnull
-    @CheckReturnValue
-    GuildAction createGuild(@Nonnull String name);
-
-    /**
-     * Constructs a new {@link Guild Guild} from the specified template code.
-     *
-     * <p>This RestAction does not provide the resulting Guild!
-     * It will be in a following {@link net.dv8tion.jda.api.events.guild.GuildJoinEvent GuildJoinEvent}.
-     *
-     * <p>Possible {@link net.dv8tion.jda.api.requests.ErrorResponse ErrorResponses} include:
-     * <ul>
-     *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#UNKNOWN_GUILD_TEMPLATE Unknown Guild Template}
-     *     <br>The template doesn't exist.</li>
-     * </ul>
-     *
-     * @param  code
-     *         The template code to use to create a guild
-     * @param  name
-     *         The name of the resulting guild
-     * @param  icon
-     *         The {@link net.dv8tion.jda.api.entities.Icon Icon} to use, or null to use no icon
-     *
-     * @throws java.lang.IllegalStateException
-     *         If the currently logged in account is in 10 or more guilds
-     * @throws java.lang.IllegalArgumentException
-     *         If the provided name is empty, {@code null} or not between 2-100 characters
-     *
-     * @return {@link net.dv8tion.jda.api.requests.RestAction RestAction}
-     */
-    @Nonnull
-    @CheckReturnValue
-    RestAction<Void> createGuildFromTemplate(@Nonnull String code, @Nonnull String name, @Nullable Icon icon);
 
     /**
      * {@link net.dv8tion.jda.api.utils.cache.CacheView CacheView} of
@@ -1170,13 +1117,13 @@ public interface JDA extends IGuildChannelContainer<Channel>
      * @param  users
      *         The users which all the returned {@link Guild Guilds} must contain.
      *
-     * @return Immutable list of all {@link Guild Guild} instances which have all {@link net.dv8tion.jda.api.entities.User Users} in them.
+     * @return Immutable list of all {@link Guild Guild} instances which have all {@link net.dv8tion.jda.api.entities.UserSnowflake Users} in them.
      *
      * @see    Guild#isMember(UserSnowflake)
      */
     @Nonnull
     @Unmodifiable
-    List<Guild> getMutualGuilds(@Nonnull User... users);
+    List<Guild> getMutualGuilds(@Nonnull UserSnowflake... users);
 
     /**
      * Gets all {@link Guild Guilds} that contain all given users as their members.
@@ -1184,11 +1131,11 @@ public interface JDA extends IGuildChannelContainer<Channel>
      * @param users
      *        The users which all the returned {@link Guild Guilds} must contain.
      *
-     * @return Immutable list of all {@link Guild Guild} instances which have all {@link net.dv8tion.jda.api.entities.User Users} in them.
+     * @return Immutable list of all {@link Guild Guild} instances which have all {@link net.dv8tion.jda.api.entities.UserSnowflake Users} in them.
      */
     @Nonnull
     @Unmodifiable
-    List<Guild> getMutualGuilds(@Nonnull Collection<User> users);
+    List<Guild> getMutualGuilds(@Nonnull Collection<? extends UserSnowflake> users);
 
     /**
      * Attempts to retrieve a {@link net.dv8tion.jda.api.entities.User User} object based on the provided id.

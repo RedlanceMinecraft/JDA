@@ -28,37 +28,30 @@ import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.exceptions.ParsingException;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.Route;
 import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
-import net.dv8tion.jda.api.requests.restaction.pagination.MessagePaginationAction;
-import net.dv8tion.jda.api.requests.restaction.pagination.PaginationAction;
-import net.dv8tion.jda.api.requests.restaction.pagination.PollVotersPaginationAction;
-import net.dv8tion.jda.api.requests.restaction.pagination.ReactionPaginationAction;
+import net.dv8tion.jda.api.requests.restaction.pagination.*;
 import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.MiscUtil;
-import net.dv8tion.jda.api.utils.data.DataArray;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.api.utils.messages.MessagePollData;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import net.dv8tion.jda.internal.JDAImpl;
-import net.dv8tion.jda.internal.entities.EntityBuilder;
 import net.dv8tion.jda.internal.requests.RestActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.AuditableRestActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.MessageCreateActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.MessageEditActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.pagination.MessagePaginationActionImpl;
+import net.dv8tion.jda.internal.requests.restaction.pagination.PinnedMessagePaginationActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.pagination.PollVotersPaginationActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.pagination.ReactionPaginationActionImpl;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.dv8tion.jda.internal.utils.Helpers;
-import net.dv8tion.jda.internal.utils.JDALogger;
-import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -1884,7 +1877,7 @@ public interface MessageChannel extends Channel, Formattable
      *         If this entity is {@link #isDetached() detached}
      *
      * @return {@link net.dv8tion.jda.api.entities.MessageHistory.MessageRetrieveAction MessageHistory.MessageRetrieveAction}
-     *         <br>Provides a {@link net.dv8tion.jda.api.entities.MessageHistory MessageHistory} object with with the first messages of this channel loaded into it.
+     *         <br>Provides a {@link net.dv8tion.jda.api.entities.MessageHistory MessageHistory} object with the first messages of this channel loaded into it.
      *         <br><b>Note: The messages are ordered from the most recent to oldest!</b>
      *
      * @see    net.dv8tion.jda.api.entities.MessageHistory#retrieveFuture(int)                     MessageHistory.retrieveFuture(int)
@@ -2385,7 +2378,7 @@ public interface MessageChannel extends Channel, Formattable
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#MISSING_PERMISSIONS MISSING_PERMISSIONS}
      *     <br>The request was attempted after the account lost
-     *         {@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE} in the
+     *         {@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES} in the
      *         {@link GuildMessageChannel GuildMessageChannel}.</li>
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#UNKNOWN_MESSAGE UNKNOWN_MESSAGE}
@@ -2405,21 +2398,21 @@ public interface MessageChannel extends Channel, Formattable
      *         If this is a {@link GuildMessageChannel GuildMessageChannel} and the logged in account does not have
      *         <ul>
      *             <li>{@link net.dv8tion.jda.api.Permission#VIEW_CHANNEL Permission.VIEW_CHANNEL}</li>
-     *             <li>{@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE}</li>
+     *             <li>{@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES}</li>
      *         </ul>
      * @throws net.dv8tion.jda.api.exceptions.DetachedEntityException
      *         If this entity is {@link #isDetached() detached}
      *
-     * @return {@link net.dv8tion.jda.api.requests.RestAction RestAction}
+     * @return {@link net.dv8tion.jda.api.requests.restaction.AuditableRestAction AuditableRestAction}
      */
     @Nonnull
     @CheckReturnValue
-    default RestAction<Void> pinMessageById(@Nonnull String messageId)
+    default AuditableRestAction<Void> pinMessageById(@Nonnull String messageId)
     {
         Checks.isSnowflake(messageId, "Message ID");
 
-        Route.CompiledRoute route = Route.Messages.ADD_PINNED_MESSAGE.compile(getId(), messageId);
-        return new RestActionImpl<>(getJDA(), route);
+        Route.CompiledRoute route = Route.Messages.PIN_MESSAGE.compile(getId(), messageId);
+        return new AuditableRestActionImpl<>(getJDA(), route);
     }
 
     /**
@@ -2434,7 +2427,7 @@ public interface MessageChannel extends Channel, Formattable
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#MISSING_PERMISSIONS MISSING_PERMISSIONS}
      *     <br>The request was attempted after the account lost
-     *         {@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE} in the
+     *         {@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES} in the
      *         {@link GuildMessageChannel GuildMessageChannel}.</li>
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#UNKNOWN_MESSAGE UNKNOWN_MESSAGE}
@@ -2454,16 +2447,16 @@ public interface MessageChannel extends Channel, Formattable
      *         If this is a {@link GuildMessageChannel GuildMessageChannel} and the logged in account does not have
      *         <ul>
      *             <li>{@link net.dv8tion.jda.api.Permission#VIEW_CHANNEL Permission.VIEW_CHANNEL}</li>
-     *             <li>{@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE}</li>
+     *             <li>{@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES}</li>
      *         </ul>
      * @throws net.dv8tion.jda.api.exceptions.DetachedEntityException
      *         If this entity is {@link #isDetached() detached}
      *
-     * @return {@link net.dv8tion.jda.api.requests.RestAction RestAction}
+     * @return {@link net.dv8tion.jda.api.requests.restaction.AuditableRestAction AuditableRestAction}
      */
     @Nonnull
     @CheckReturnValue
-    default RestAction<Void> pinMessageById(long messageId)
+    default AuditableRestAction<Void> pinMessageById(long messageId)
     {
         return pinMessageById(Long.toUnsignedString(messageId));
     }
@@ -2480,7 +2473,7 @@ public interface MessageChannel extends Channel, Formattable
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#MISSING_PERMISSIONS MISSING_PERMISSIONS}
      *     <br>The request was attempted after the account lost
-     *         {@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE} in the
+     *         {@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES} in the
      *         {@link GuildMessageChannel GuildMessageChannel}.</li>
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#UNKNOWN_MESSAGE UNKNOWN_MESSAGE}
@@ -2500,21 +2493,21 @@ public interface MessageChannel extends Channel, Formattable
      *         If this is a {@link GuildMessageChannel GuildMessageChannel} and the logged in account does not have
      *         <ul>
      *             <li>{@link net.dv8tion.jda.api.Permission#VIEW_CHANNEL Permission.VIEW_CHANNEL}</li>
-     *             <li>{@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE}</li>
+     *             <li>{@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES}</li>
      *         </ul>
      * @throws net.dv8tion.jda.api.exceptions.DetachedEntityException
      *         If this entity is {@link #isDetached() detached}
      *
-     * @return {@link net.dv8tion.jda.api.requests.RestAction RestAction}
+     * @return {@link net.dv8tion.jda.api.requests.restaction.AuditableRestAction AuditableRestAction}
      */
     @Nonnull
     @CheckReturnValue
-    default RestAction<Void> unpinMessageById(@Nonnull String messageId)
+    default AuditableRestAction<Void> unpinMessageById(@Nonnull String messageId)
     {
         Checks.isSnowflake(messageId, "Message ID");
 
-        Route.CompiledRoute route = Route.Messages.REMOVE_PINNED_MESSAGE.compile(getId(), messageId);
-        return new RestActionImpl<Void>(getJDA(), route);
+        Route.CompiledRoute route = Route.Messages.UNPIN_MESSAGE.compile(getId(), messageId);
+        return new AuditableRestActionImpl<>(getJDA(), route);
     }
 
     /**
@@ -2529,7 +2522,7 @@ public interface MessageChannel extends Channel, Formattable
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#MISSING_PERMISSIONS MISSING_PERMISSIONS}
      *     <br>The request was attempted after the account lost
-     *         {@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE} in the
+     *         {@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES} in the
      *         {@link GuildMessageChannel GuildMessageChannel}.</li>
      *
      *     <li>{@link net.dv8tion.jda.api.requests.ErrorResponse#UNKNOWN_MESSAGE UNKNOWN_MESSAGE}
@@ -2549,16 +2542,16 @@ public interface MessageChannel extends Channel, Formattable
      *         If this is a {@link GuildMessageChannel GuildMessageChannel} and the logged in account does not have
      *         <ul>
      *             <li>{@link net.dv8tion.jda.api.Permission#VIEW_CHANNEL Permission.VIEW_CHANNEL}</li>
-     *             <li>{@link net.dv8tion.jda.api.Permission#MESSAGE_MANAGE Permission.MESSAGE_MANAGE}</li>
+     *             <li>{@link net.dv8tion.jda.api.Permission#PIN_MESSAGES Permission.PIN_MESSAGES}</li>
      *         </ul>
      * @throws net.dv8tion.jda.api.exceptions.DetachedEntityException
      *         If this entity is {@link #isDetached() detached}
      *
-     * @return {@link net.dv8tion.jda.api.requests.RestAction RestAction}
+     * @return {@link net.dv8tion.jda.api.requests.restaction.AuditableRestAction AuditableRestAction}
      */
     @Nonnull
     @CheckReturnValue
-    default RestAction<Void> unpinMessageById(long messageId)
+    default AuditableRestAction<Void> unpinMessageById(long messageId)
     {
         return unpinMessageById(Long.toUnsignedString(messageId));
     }
@@ -2584,35 +2577,13 @@ public interface MessageChannel extends Channel, Formattable
      * @throws net.dv8tion.jda.api.exceptions.DetachedEntityException
      *         If this entity is {@link #isDetached() detached}
      *
-     * @return {@link net.dv8tion.jda.api.requests.RestAction RestAction} - Type: List{@literal <}{@link net.dv8tion.jda.api.entities.Message}{@literal >}
-     *         <br>Retrieves an immutable list of pinned messages
+     * @return {@link PinnedMessagePaginationAction}
      */
     @Nonnull
     @CheckReturnValue
-    default RestAction<@Unmodifiable List<Message>> retrievePinnedMessages()
+    default PinnedMessagePaginationAction retrievePinnedMessages()
     {
-        JDAImpl jda = (JDAImpl) getJDA();
-        Route.CompiledRoute route = Route.Messages.GET_PINNED_MESSAGES.compile(getId());
-        return new RestActionImpl<>(jda, route, (response, request) ->
-        {
-            EntityBuilder builder = jda.getEntityBuilder();
-            DataArray pins = response.getArray();
-            List<Message> pinnedMessages = new ArrayList<>(pins.length());
-
-            for (int i = 0; i < pins.length(); i++)
-            {
-                try
-                {
-                    pinnedMessages.add(builder.createMessageWithChannel(pins.getObject(i), MessageChannel.this, false));
-                }
-                catch (ParsingException | NullPointerException e)
-                {
-                    JDALogger.getLog(getClass()).error("Failed to parse pinned message", e);
-                }
-            }
-
-            return Collections.unmodifiableList(pinnedMessages);
-        });
+        return new PinnedMessagePaginationActionImpl(this);
     }
 
     /**

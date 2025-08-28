@@ -47,7 +47,7 @@ plugins {
 ////////////////////////////////////
 
 projectEnvironment {
-    version = Version(major = "6", minor = "0", revision = "0", classifier = "rc.1")
+    version = Version(major = "6", minor = "0", revision = "0", classifier = "rc.3")
 }
 
 artifactFilters {
@@ -89,6 +89,8 @@ configure<SourceSetContainer> {
 //    Dependency Configuration    //
 //                                //
 ////////////////////////////////////
+
+val mockitoAgent by configurations.creating
 
 repositories {
     mavenCentral()
@@ -142,6 +144,10 @@ dependencies {
     testImplementation(libs.commons.lang3)
     testImplementation(libs.logback.classic)
     testImplementation(libs.archunit)
+
+    mockitoAgent(libs.mockito) {
+        isTransitive = false
+    }
 
     // OpenRewrite
     // Import Rewrite's bill of materials.
@@ -318,17 +324,15 @@ tasks.withType<JavaCompile> {
         args.add("8")
     }
 
-    doFirst {
-        options.compilerArgs = args
-    }
+    options.compilerArgs.addAll(args)
 }
 
-val compileJava by tasks.getting(JavaCompile::class) {
+tasks.named<JavaCompile>("compileJava").configure {
     dependsOn(generateJavaSources)
     source = generateJavaSources.get().source
 }
 
-val build by tasks.getting(Task::class) {
+tasks.build.configure {
     dependsOn(jar)
     dependsOn(javadocJar)
     dependsOn(sourcesJar)
@@ -339,6 +343,14 @@ val build by tasks.getting(Task::class) {
     jar.mustRunAfter(tasks.clean)
     shadowJar.mustRunAfter(sourcesJar)
 }
+
+
+////////////////////////////////////
+//                                //
+//       Test Configuration       //
+//                                //
+////////////////////////////////////
+
 
 val downloadRecipeClasspath by tasks.registering(Download::class) {
     val targetVersion = "5.6.1"
@@ -351,17 +363,36 @@ tasks.named("processTestResources").configure {
     dependsOn(downloadRecipeClasspath)
 }
 
-val test by tasks.getting(Test::class) {
-    useJUnitPlatform()
-    failFast = false
-}
 
-val updateTestSnapshots by tasks.registering(Test::class) {
+tasks.register<Test>("updateTestSnapshots") {
+    group = "verification"
     useJUnitPlatform()
-    failFast = false
+
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
 
     systemProperty("updateSnapshots", "true")
 }
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    failFast = false
+
+    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_21)) {
+        jvmArgs = listOf("-javaagent:${mockitoAgent.asPath}")
+    }
+}
+
+tasks.test {
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
+    reports {
+        junitXml.required = projectEnvironment.isGithubAction
+        html.required = projectEnvironment.isGithubAction
+    }
+}
+
 
 ////////////////////////////////////
 //                                //

@@ -461,6 +461,14 @@ public class EntityBuilder extends AbstractEntityBuilder
             return null;
         }
     }
+    
+    public User.PrimaryGuild createPrimaryGuild(DataObject obj)
+    {
+        if (obj.isNull("identity_guild_id"))
+            return null;
+        
+        return new User.PrimaryGuild(obj.getUnsignedLong("identity_guild_id"), obj.getBoolean("identity_enabled"), obj.getString("tag", null), obj.getString("badge", null));
+    }
 
     public UserImpl createUser(DataObject user)
     {
@@ -485,6 +493,10 @@ public class EntityBuilder extends AbstractEntityBuilder
 
         if (newUser)
         {
+            User.PrimaryGuild primaryGuild = user.optObject("primary_guild")
+                   .map(this::createPrimaryGuild)
+                   .orElse(null);
+            
             // Initial creation
             userObj.setName(user.getString("username"))
                    .setGlobalName(user.getString("global_name", null))
@@ -493,6 +505,7 @@ public class EntityBuilder extends AbstractEntityBuilder
                    .setBot(user.getBoolean("bot"))
                    .setSystem(user.getBoolean("system"))
                    .setFlags(user.getInt("public_flags", 0))
+                   .setPrimaryGuild(primaryGuild)
                    .setProfile(profile);
         }
         else
@@ -516,6 +529,10 @@ public class EntityBuilder extends AbstractEntityBuilder
         String newAvatar = user.getString("avatar", null);
         int oldFlags = userObj.getFlagsRaw();
         int newFlags = user.getInt("public_flags", 0);
+        User.PrimaryGuild oldPrimaryGuild = userObj.getPrimaryGuild();
+        User.PrimaryGuild newPrimaryGuild = user.optObject("primary_guild")
+                .map(this::createPrimaryGuild)
+                .orElse(null);
 
         JDAImpl jda = getJDA();
         long responseNumber = jda.getResponseTotal();
@@ -563,6 +580,15 @@ public class EntityBuilder extends AbstractEntityBuilder
                     new UserUpdateFlagsEvent(
                         jda, responseNumber,
                         userObj, User.UserFlag.getFlags(oldFlags)));
+        }
+        
+        if (!Objects.equals(oldPrimaryGuild, newPrimaryGuild))
+        {
+            userObj.setPrimaryGuild(newPrimaryGuild);
+            jda.handleEvent(
+                new UserUpdatePrimaryGuildEvent(
+                    jda, responseNumber,
+                    userObj, oldPrimaryGuild));
         }
     }
 
@@ -1122,7 +1148,9 @@ public class EntityBuilder extends AbstractEntityBuilder
         }
 
         configureCategory(json, channel);
-        createOverridesPass(channel, json.getArray("permission_overwrites"));
+        Optional<DataArray> permissionOverwrites = json.optArray("permission_overwrites");
+        if (permissionOverwrites.isPresent())
+            createOverridesPass(channel, permissionOverwrites.get());
         if (playbackCache)
             getJDA().getEventCache().playbackCache(EventCache.Type.CHANNEL, id);
         return channel;
@@ -1160,7 +1188,9 @@ public class EntityBuilder extends AbstractEntityBuilder
         }
 
         configureTextChannel(json, channel);
-        createOverridesPass(channel, json.getArray("permission_overwrites"));
+        Optional<DataArray> permissionOverwrites = json.optArray("permission_overwrites");
+        if (permissionOverwrites.isPresent())
+            createOverridesPass(channel, permissionOverwrites.get());
         if (playbackCache)
             getJDA().getEventCache().playbackCache(EventCache.Type.CHANNEL, id);
         return channel;
@@ -1198,7 +1228,9 @@ public class EntityBuilder extends AbstractEntityBuilder
         }
 
         configureNewsChannel(json, channel);
-        createOverridesPass(channel, json.getArray("permission_overwrites"));
+        Optional<DataArray> permissionOverwrites = json.optArray("permission_overwrites");
+        if (permissionOverwrites.isPresent())
+            createOverridesPass(channel, permissionOverwrites.get());
         if (playbackCache)
             getJDA().getEventCache().playbackCache(EventCache.Type.CHANNEL, id);
         return channel;
@@ -1235,7 +1267,9 @@ public class EntityBuilder extends AbstractEntityBuilder
         }
 
         configureVoiceChannel(json, channel);
-        createOverridesPass(channel, json.getArray("permission_overwrites"));
+        Optional<DataArray> permissionOverwrites = json.optArray("permission_overwrites");
+        if (permissionOverwrites.isPresent())
+            createOverridesPass(channel, permissionOverwrites.get());
         if (playbackCache)
             getJDA().getEventCache().playbackCache(EventCache.Type.CHANNEL, id);
         return channel;
@@ -1272,7 +1306,9 @@ public class EntityBuilder extends AbstractEntityBuilder
         }
 
         configureStageChannel(json, channel);
-        createOverridesPass(channel, json.getArray("permission_overwrites"));
+        Optional<DataArray> permissionOverwrites = json.optArray("permission_overwrites");
+        if (permissionOverwrites.isPresent())
+            createOverridesPass(channel, permissionOverwrites.get());
         if (playbackCache)
             getJDA().getEventCache().playbackCache(EventCache.Type.CHANNEL, id);
         return channel;
@@ -1396,7 +1432,9 @@ public class EntityBuilder extends AbstractEntityBuilder
             }
         }
         configureForumChannel(json, channel);
-        createOverridesPass(channel, json.getArray("permission_overwrites"));
+        Optional<DataArray> permissionOverwrites = json.optArray("permission_overwrites");
+        if (permissionOverwrites.isPresent())
+            createOverridesPass(channel, permissionOverwrites.get());
         if (playbackCache)
             getJDA().getEventCache().playbackCache(EventCache.Type.CHANNEL, id);
         return channel;
@@ -1432,7 +1470,9 @@ public class EntityBuilder extends AbstractEntityBuilder
             }
         }
         configureMediaChannel(json, channel);
-        createOverridesPass(channel, json.getArray("permission_overwrites"));
+        Optional<DataArray> permissionOverwrites = json.optArray("permission_overwrites");
+        if (permissionOverwrites.isPresent())
+            createOverridesPass(channel, permissionOverwrites.get());
         if (playbackCache)
             getJDA().getEventCache().playbackCache(EventCache.Type.CHANNEL, id);
         return channel;
