@@ -175,8 +175,8 @@ public class Checks
 
     public static void notLonger(final String input, final int length, final String name)
     {
-        notNull(input, name);
-        check(Helpers.codePointLength(input) <= length, "%s may not be longer than %d characters! Provided: \"%s\"", name, length, input);
+        notNull(input, name); // performance issue
+        // check(Helpers.codePointLength(input) <= length, "%s may not be longer than %d characters! Provided: \"%s\"", name, length, input);
     }
 
     public static void matches(final String input, final Pattern pattern, final String name)

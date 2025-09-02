@@ -316,7 +316,7 @@ public interface Command extends ISnowflake, ICommandReference
          */
         public static final int MAX_STRING_VALUE_LENGTH = 100;
 
-        private String name;
+        protected String name;
         private final LocalizationMap nameLocalizations = new LocalizationMap(this::checkName);
         private long intValue = 0;
         private double doubleValue = Double.NaN;
