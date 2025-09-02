@@ -47,7 +47,7 @@ plugins {
 ////////////////////////////////////
 
 projectEnvironment {
-    version = Version(major = "6", minor = "0", revision = "0", classifier = "rc.3")
+    version = Version(major = "6", minor = "0", revision = "0", classifier = "rc.4")
 }
 
 artifactFilters {
@@ -434,10 +434,9 @@ fun MavenPom.populate() {
     }
 }
 
-// Skip fat jar publication (See https://github.com/johnrengelman/shadow/issues/586)
-components.java.withVariantsFromConfiguration(configurations.shadowRuntimeElements.get()) { skip() }
-val SoftwareComponentContainer.java
-    get() = components.getByName<AdhocComponentWithVariants>("java")
+shadow {
+    addShadowVariantIntoJavaComponent = false
+}
 
 val stagingDirectory = layout.buildDirectory.dir("staging-deploy").get()
 
