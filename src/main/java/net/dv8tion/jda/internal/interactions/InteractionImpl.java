@@ -16,7 +16,6 @@
 
 package net.dv8tion.jda.internal.interactions;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Entitlement;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -237,8 +236,14 @@ public class InteractionImpl implements Interaction
 
     @Nonnull
     @Override
-    public JDA getJDA()
+    public JDAImpl getJDA()
     {
         return api;
+    }
+
+    @Nonnull
+    public InteractionEntityBuilder getInteractionEntityBuilder()
+    {
+        return interactionEntityBuilder;
     }
 }
