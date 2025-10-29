@@ -1842,6 +1842,16 @@ public class JDABuilder
     }
 
     /**
+     * {@link JDABuilder#build(boolean)} overload was added because verifyToken is a blocking operation and
+     * apparently not particularly necessary.
+     */
+    @Nonnull
+    public JDA build()
+    {
+        return build(true);
+    }
+
+    /**
      * Builds a new {@link net.dv8tion.jda.api.JDA} instance and uses the provided token to start the login process.
      * <br>The login process runs in a different thread, so while this will return immediately, {@link net.dv8tion.jda.api.JDA} has not
      * finished loading, thus many {@link net.dv8tion.jda.api.JDA} methods have the chance to return incorrect information.
@@ -1864,7 +1874,7 @@ public class JDABuilder
      * @see    net.dv8tion.jda.api.JDA#awaitReady()
      */
     @Nonnull
-    public JDA build()
+    public JDA build(boolean verifyToken)
     {
         checkIntents();
         OkHttpClient httpClient = this.httpClient;
@@ -1913,7 +1923,7 @@ public class JDABuilder
                 .setCacheActivity(activity)
                 .setCacheIdle(idle)
                 .setCacheStatus(status);
-        jda.login(shardInfo, compression, true, intents, encoding);
+        jda.login(shardInfo, compression, verifyToken, intents, encoding);
         return jda;
     }
 
