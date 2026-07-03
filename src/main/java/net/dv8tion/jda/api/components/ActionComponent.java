@@ -26,8 +26,7 @@ import javax.annotation.Nonnull;
 /**
  * Component which supports interactions via {@link ComponentInteraction}.
  */
-public interface ActionComponent extends IDisableable, ICustomId
-{
+public interface ActionComponent extends IDisableable, ICustomId {
     @Nonnull
     @Override
     ActionComponent withUniqueId(int uniqueId);
@@ -39,6 +38,7 @@ public interface ActionComponent extends IDisableable, ICustomId
      *
      * @return True, if this button is disabled
      */
+    @Override
     boolean isDisabled();
 
     /**
@@ -48,10 +48,10 @@ public interface ActionComponent extends IDisableable, ICustomId
      *
      * @return New disabled component instance
      */
+    @Override
     @Nonnull
     @CheckReturnValue
-    default ActionComponent asDisabled()
-    {
+    default ActionComponent asDisabled() {
         return (ActionComponent) IDisableable.super.asDisabled();
     }
 
@@ -60,10 +60,10 @@ public interface ActionComponent extends IDisableable, ICustomId
      *
      * @return New enabled component instance
      */
+    @Override
     @Nonnull
     @CheckReturnValue
-    default ActionComponent asEnabled()
-    {
+    default ActionComponent asEnabled() {
         return (ActionComponent) IDisableable.super.asEnabled();
     }
 
@@ -80,6 +80,7 @@ public interface ActionComponent extends IDisableable, ICustomId
      *
      * @return New enabled/disabled component instance
      */
+    @Override
     @Nonnull
     @CheckReturnValue
     ActionComponent withDisabled(boolean disabled);

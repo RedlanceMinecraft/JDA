@@ -21,42 +21,35 @@ import net.dv8tion.jda.internal.utils.Checks;
 
 import javax.annotation.Nonnull;
 
-public final class AuthorizationConfig
-{
+public final class AuthorizationConfig {
     private AccountType type;
     private String token;
 
-    public AuthorizationConfig(@Nonnull String token)
-    {
+    public AuthorizationConfig(@Nonnull String token) {
         this(AccountType.BOT, token);
     }
 
-    public AuthorizationConfig(@Nonnull AccountType type, @Nonnull String token)
-    {
+    public AuthorizationConfig(@Nonnull AccountType type, @Nonnull String token) {
         Checks.notEmpty(token, "Token");
         Checks.noWhitespace(token, "Token");
         setToken(type, token);
     }
 
     @Nonnull
-    public String getToken()
-    {
+    public String getToken() {
         return type.prefix + token;
     }
 
     @Nonnull
-    public AccountType getAccountType()
-    {
+    public AccountType getAccountType() {
         return type;
     }
 
-    public void setToken(@Nonnull String token)
-    {
+    public void setToken(@Nonnull String token) {
         setToken(AccountType.BOT, token);
     }
 
-    public void setToken(@Nonnull AccountType type, @Nonnull String token)
-    {
+    public void setToken(@Nonnull AccountType type, @Nonnull String token) {
         this.type = type;
         this.token = token;
     }

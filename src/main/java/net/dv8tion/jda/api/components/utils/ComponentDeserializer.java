@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
 import net.dv8tion.jda.api.components.tree.ComponentTree;
 import net.dv8tion.jda.api.components.tree.MessageComponentTree;
 import net.dv8tion.jda.api.components.tree.ModalComponentTree;
+import net.dv8tion.jda.api.exceptions.DataObjectParsingException;
 import net.dv8tion.jda.api.exceptions.ParsingException;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.data.DataArray;
@@ -35,6 +36,8 @@ import net.dv8tion.jda.internal.components.UnknownComponentImpl;
 import net.dv8tion.jda.internal.components.actionrow.ActionRowImpl;
 import net.dv8tion.jda.internal.components.attachmentupload.AttachmentUploadImpl;
 import net.dv8tion.jda.internal.components.buttons.ButtonImpl;
+import net.dv8tion.jda.internal.components.checkbox.CheckboxImpl;
+import net.dv8tion.jda.internal.components.checkboxgroup.CheckboxGroupImpl;
 import net.dv8tion.jda.internal.components.container.ContainerImpl;
 import net.dv8tion.jda.internal.components.filedisplay.FileDisplayFileUpload;
 import net.dv8tion.jda.internal.components.filedisplay.FileDisplayImpl;
@@ -42,6 +45,7 @@ import net.dv8tion.jda.internal.components.label.LabelImpl;
 import net.dv8tion.jda.internal.components.mediagallery.MediaGalleryImpl;
 import net.dv8tion.jda.internal.components.mediagallery.MediaGalleryItemFileUpload;
 import net.dv8tion.jda.internal.components.mediagallery.MediaGalleryItemImpl;
+import net.dv8tion.jda.internal.components.radiogroup.RadioGroupImpl;
 import net.dv8tion.jda.internal.components.section.SectionImpl;
 import net.dv8tion.jda.internal.components.selections.EntitySelectMenuImpl;
 import net.dv8tion.jda.internal.components.selections.StringSelectMenuImpl;
@@ -52,24 +56,23 @@ import net.dv8tion.jda.internal.components.thumbnail.ThumbnailFileUpload;
 import net.dv8tion.jda.internal.components.thumbnail.ThumbnailImpl;
 import net.dv8tion.jda.internal.components.utils.ComponentsUtil;
 import net.dv8tion.jda.internal.utils.Checks;
+import net.dv8tion.jda.internal.utils.Helpers;
 
-import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
 
 /**
  * Utility class to deserialize components that were previously serialized by {@link ComponentSerializer}.
  *
  * @see ComponentSerializer
  */
-public class ComponentDeserializer
-{
+public class ComponentDeserializer {
     private static final String ATTACHMENT_SCHEMA = "attachment://";
     private final Map<String, FileUpload> files;
+    private final Set<DeserializerFeature> features;
 
     /**
      * Create a new deserializer instance with the provided files.
@@ -77,11 +80,25 @@ public class ComponentDeserializer
      * @param files
      *        The implicit file uploads used by the components (see {@link ComponentSerializer#getFileUploads(Collection)})
      */
-    public ComponentDeserializer(@Nonnull Collection<? extends FileUpload> files)
-    {
+    public ComponentDeserializer(@Nonnull Collection<? extends FileUpload> files) {
+        this(files, Collections.emptySet());
+    }
+
+    /**
+     * Create a new deserializer instance with the provided files.
+     *
+     * @param files
+     *        The implicit file uploads used by the components (see {@link ComponentSerializer#getFileUploads(Collection)})
+     * @param features
+     *        Feature set of this deserializer
+     */
+    public ComponentDeserializer(
+            @Nonnull Collection<? extends FileUpload> files, @Nonnull Collection<DeserializerFeature> features) {
         this.files = new LinkedHashMap<>(files.size());
-        for (FileUpload file : files)
+        for (FileUpload file : files) {
             this.files.put(file.getName(), file);
+        }
+        this.features = Helpers.copyEnumSet(DeserializerFeature.class, features);
     }
 
     /**
@@ -100,12 +117,9 @@ public class ComponentDeserializer
      * @see    #deserializeAs(Class, List)
      */
     @Nonnull
-    public List<IComponentUnion> deserializeAll(@Nonnull List<DataObject> components)
-    {
+    public List<IComponentUnion> deserializeAll(@Nonnull List<DataObject> components) {
         Checks.noneNull(components, "Components");
-        return components.stream()
-            .map(this::parseComponent)
-            .collect(Collectors.toList());
+        return components.stream().map(this::parseComponent).collect(Collectors.toList());
     }
 
     /**
@@ -126,8 +140,7 @@ public class ComponentDeserializer
      * @see    #deserializeAs(Class, DataObject)
      */
     @Nonnull
-    public <T extends Component> Stream<T> deserializeAs(@Nonnull Class<T> type, @Nonnull List<DataObject> components)
-    {
+    public <T extends Component> Stream<T> deserializeAs(@Nonnull Class<T> type, @Nonnull List<DataObject> components) {
         Checks.notNull(type, "Type");
         Checks.noneNull(components, "Components");
         return components.stream()
@@ -153,13 +166,12 @@ public class ComponentDeserializer
      * @see    #deserializeAs(Class, List)
      */
     @Nonnull
-    public <T extends Component> Stream<T> deserializeAs(@Nonnull Class<T> type, @Nonnull DataArray components)
-    {
+    public <T extends Component> Stream<T> deserializeAs(@Nonnull Class<T> type, @Nonnull DataArray components) {
         Checks.notNull(type, "Type");
         Checks.notNull(components, "Components");
         return components.stream(DataArray::getObject)
-            .map(this::parseComponent)
-            .map(component -> ComponentsUtil.safeUnionCastWithUnknownType("component", component, type));
+                .map(this::parseComponent)
+                .map(component -> ComponentsUtil.safeUnionCastWithUnknownType("component", component, type));
     }
 
     /**
@@ -180,8 +192,7 @@ public class ComponentDeserializer
      * @see    #deserializeAs(Class, List)
      */
     @Nonnull
-    public <T extends Component> T deserializeAs(@Nonnull Class<T> type, @Nonnull DataObject component)
-    {
+    public <T extends Component> T deserializeAs(@Nonnull Class<T> type, @Nonnull DataObject component) {
         Checks.notNull(type, "Type");
         Checks.notNull(component, "Component");
         IComponentUnion componentUnion = parseComponent(component);
@@ -206,8 +217,8 @@ public class ComponentDeserializer
      * @see    #deserializeAs(Class, List)
      */
     @Nonnull
-    public <T extends ComponentTree<?>> T deserializeAsTree(@Nonnull Class<T> treeType, @Nonnull List<DataObject> components)
-    {
+    public <T extends ComponentTree<?>> T deserializeAsTree(
+            @Nonnull Class<T> treeType, @Nonnull List<DataObject> components) {
         Checks.notNull(components, "Components");
         return deserializeAsTree(treeType, DataArray.fromCollection(components));
     }
@@ -231,127 +242,149 @@ public class ComponentDeserializer
      */
     @Nonnull
     @SuppressWarnings("unchecked")
-    public <T extends ComponentTree<?>> T deserializeAsTree(@Nonnull Class<T> treeType, @Nonnull DataArray components)
-    {
+    public <T extends ComponentTree<?>> T deserializeAsTree(@Nonnull Class<T> treeType, @Nonnull DataArray components) {
         Checks.notNull(treeType, "Tree type");
         Checks.notNull(components, "Components");
 
-        if (MessageComponentTree.class.isAssignableFrom(treeType))
-            return (T) MessageComponentTree.of(deserializeAs(MessageTopLevelComponent.class, components).collect(Collectors.toList()));
-        else if (ModalComponentTree.class.isAssignableFrom(treeType))
-            return (T) ModalComponentTree.of(deserializeAs(ModalTopLevelComponent.class, components).collect(Collectors.toList()));
-        else if (ComponentTree.class.isAssignableFrom(treeType))
-            return (T) ComponentTree.of(deserializeAs(Component.class, components).collect(Collectors.toList()));
-        else
+        if (MessageComponentTree.class.isAssignableFrom(treeType)) {
+            return (T) MessageComponentTree.of(
+                    deserializeAs(MessageTopLevelComponent.class, components).collect(Collectors.toList()));
+        } else if (ModalComponentTree.class.isAssignableFrom(treeType)) {
+            return (T) ModalComponentTree.of(
+                    deserializeAs(ModalTopLevelComponent.class, components).collect(Collectors.toList()));
+        } else if (ComponentTree.class.isAssignableFrom(treeType)) {
+            return (T)
+                    ComponentTree.of(deserializeAs(Component.class, components).collect(Collectors.toList()));
+        } else {
             throw new UnsupportedOperationException("Cannot deserialize to tree of type " + treeType.getName());
-    }
-
-
-    @Nonnull
-    private IComponentUnion parseComponent(@Nonnull DataObject data)
-    {
-        switch (Component.Type.fromKey(data.getInt("type")))
-        {
-        case ACTION_ROW:
-            return new ActionRowImpl(this, data);
-        case BUTTON:
-            return new ButtonImpl(data);
-        case STRING_SELECT:
-            return new StringSelectMenuImpl(data);
-        case TEXT_INPUT:
-            return new TextInputImpl(data);
-        case USER_SELECT:
-        case ROLE_SELECT:
-        case MENTIONABLE_SELECT:
-        case CHANNEL_SELECT:
-            return new EntitySelectMenuImpl(data);
-        case SECTION:
-            return new SectionImpl(this, data);
-        case TEXT_DISPLAY:
-            return new TextDisplayImpl(data);
-        case THUMBNAIL:
-            return (IComponentUnion) toThumbnail(data);
-        case MEDIA_GALLERY:
-            return (IComponentUnion) toMediaGallery(data);
-        case FILE_DISPLAY:
-            return (IComponentUnion) toFileDisplay(data);
-        case SEPARATOR:
-            return new SeparatorImpl(data);
-        case CONTAINER:
-            return new ContainerImpl(this, data);
-        case LABEL:
-            return new LabelImpl(this, data);
-        case FILE_UPLOAD:
-            return new AttachmentUploadImpl(data);
-        default:
-            return new UnknownComponentImpl(data);
         }
     }
 
     @Nonnull
-    private Thumbnail toThumbnail(@Nonnull DataObject data)
-    {
-        String url = data.getObject("media").getString("url");
-        if (url.startsWith(ATTACHMENT_SCHEMA))
-        {
+    private IComponentUnion parseComponent(@Nonnull DataObject data) {
+        switch (Component.Type.fromKey(data.getInt("type"))) {
+            case ACTION_ROW:
+                return new ActionRowImpl(this, data);
+            case BUTTON:
+                return new ButtonImpl(data);
+            case STRING_SELECT:
+                return new StringSelectMenuImpl(data);
+            case TEXT_INPUT:
+                return new TextInputImpl(data);
+            case USER_SELECT:
+            case ROLE_SELECT:
+            case MENTIONABLE_SELECT:
+            case CHANNEL_SELECT:
+                return new EntitySelectMenuImpl(data);
+            case SECTION:
+                return new SectionImpl(this, data);
+            case TEXT_DISPLAY:
+                return new TextDisplayImpl(data);
+            case THUMBNAIL:
+                return (IComponentUnion) toThumbnail(data);
+            case MEDIA_GALLERY:
+                return (IComponentUnion) toMediaGallery(data);
+            case FILE_DISPLAY:
+                return (IComponentUnion) toFileDisplay(data);
+            case SEPARATOR:
+                return new SeparatorImpl(data);
+            case CONTAINER:
+                return new ContainerImpl(this, data);
+            case LABEL:
+                return new LabelImpl(this, data);
+            case FILE_UPLOAD:
+                return new AttachmentUploadImpl(data);
+            case RADIO_GROUP:
+                return new RadioGroupImpl(data);
+            case CHECKBOX_GROUP:
+                return new CheckboxGroupImpl(data);
+            case CHECKBOX:
+                return new CheckboxImpl(data);
+            default:
+                return new UnknownComponentImpl(data);
+        }
+    }
+
+    @Nonnull
+    private Thumbnail toThumbnail(@Nonnull DataObject data) {
+        DataObject media = data.getObject("media");
+        String url = media.getString("url");
+        if (url.startsWith(ATTACHMENT_SCHEMA)) {
             return new ThumbnailFileUpload(
-                data.getInt("id", -1),
-                getFileByUri(url),
-                data.getString("description", null),
-                data.getBoolean("spoiler"));
+                    data.getInt("id", -1),
+                    getFileByUri(url),
+                    data.getString("description", null),
+                    data.getBoolean("spoiler"));
+        }
+
+        if (features.contains(DeserializerFeature.REQUIRE_MEDIA_PROXY_URL)) {
+            if (media.isNull("proxy_url")) {
+                throw new DataObjectParsingException(data, "media.proxy_url is missing or null");
+            }
         }
 
         return new ThumbnailImpl(data);
     }
 
     @Nonnull
-    private FileDisplay toFileDisplay(@Nonnull DataObject data)
-    {
-        String url = data.getObject("file").getString("url");
-        if (url.startsWith(ATTACHMENT_SCHEMA))
-        {
-            return new FileDisplayFileUpload(
-                data.getInt("id", -1),
-                getFileByUri(url),
-                data.getBoolean("spoiler"));
+    private FileDisplay toFileDisplay(@Nonnull DataObject data) {
+        DataObject file = data.getObject("file");
+        String url = file.getString("url");
+        if (url.startsWith(ATTACHMENT_SCHEMA)) {
+            return new FileDisplayFileUpload(data.getInt("id", -1), getFileByUri(url), data.getBoolean("spoiler"));
+        }
+
+        if (features.contains(DeserializerFeature.REQUIRE_MEDIA_PROXY_URL)) {
+            if (file.isNull("proxy_url")) {
+                throw new DataObjectParsingException(data, "file.proxy_url is missing or null");
+            }
         }
 
         return new FileDisplayImpl(data);
     }
 
     @Nonnull
-    private MediaGallery toMediaGallery(@Nonnull DataObject data)
-    {
+    private MediaGallery toMediaGallery(@Nonnull DataObject data) {
         return new MediaGalleryImpl(
-            data.getInt("id", -1),
-            data.getArray("items")
-                .stream(DataArray::getObject)
-                .map(this::toMediaGalleryItem)
-                .collect(Collectors.toList())
-        );
+                data.getInt("id", -1),
+                data.getArray("items").stream(DataArray::getObject)
+                        .map(this::toMediaGalleryItem)
+                        .collect(Collectors.toList()));
     }
 
     @Nonnull
-    private MediaGalleryItem toMediaGalleryItem(@Nonnull DataObject data)
-    {
-        String url = data.getObject("media").getString("url");
-        if (url.startsWith(ATTACHMENT_SCHEMA))
-        {
+    private MediaGalleryItem toMediaGalleryItem(@Nonnull DataObject data) {
+        DataObject media = data.getObject("media");
+        String url = media.getString("url");
+        if (url.startsWith(ATTACHMENT_SCHEMA)) {
             return new MediaGalleryItemFileUpload(
-                getFileByUri(url),
-                data.getString("description", null),
-                data.getBoolean("spoiler"));
+                    getFileByUri(url), data.getString("description", null), data.getBoolean("spoiler"));
+        }
+
+        if (features.contains(DeserializerFeature.REQUIRE_MEDIA_PROXY_URL)) {
+            if (media.isNull("proxy_url")) {
+                throw new DataObjectParsingException(data, "media.proxy_url is missing or null");
+            }
         }
 
         return new MediaGalleryItemImpl(data);
     }
 
     @Nonnull
-    private FileUpload getFileByUri(@Nonnull String uri)
-    {
+    private FileUpload getFileByUri(@Nonnull String uri) {
         String name = uri.substring(ATTACHMENT_SCHEMA.length());
         FileUpload file = files.get(name);
         Checks.check(file != null, "File for URI %s is missing", uri);
         return file;
+    }
+
+    /**
+     * Flags which changes the behavior of the deserializer.
+     */
+    public enum DeserializerFeature {
+        /**
+         * Throws {@link DataObjectParsingException} for {@link net.dv8tion.jda.api.components.ResolvedMedia ResolvedMedia} objects without a `proxy_url`.
+         */
+        REQUIRE_MEDIA_PROXY_URL,
     }
 }

@@ -54,6 +54,9 @@ This library is available on maven central. The latest version is always shown i
 
 The minimum java version supported by JDA is **Java SE 8**. JDA also uses JSR 305 to support solid interoperability with Kotlin out of the box.
 
+> [!NOTE]
+> To use JDA for audio connections, you must also add a dependency that implements the [DAVE Protocol](https://daveprotocol.com/). See [Making a Music Bot](https://jda.wiki/using-jda/making-a-music-bot/) for details.
+
 ### Gradle
 
 ```gradle
@@ -184,14 +187,13 @@ public class SlashCommandListener extends ListenerAdapter {
       case "say" -> {
         String content = event.getOption("content", OptionMapping::getAsString);
         event.reply(content).queue();
-      };
+      }
       case "leave" -> {
         event.reply("I'm leaving the server now!")
           .setEphemeral(true) // this message is only visible to the command user
           .flatMap(m -> event.getGuild().leave()) // append a follow-up action using flatMap
           .queue(); // enqueue both actions to run in sequence (send message -> leave guild)
-      };
-      default -> return;
+      }
     }
   }
 }
