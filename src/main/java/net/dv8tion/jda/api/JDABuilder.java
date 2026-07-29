@@ -140,6 +140,8 @@ public class JDABuilder {
     }
 
     /**
+     * Creates a JDABuilder with recommended default settings.
+     *
      * @see    #createDefault(String)
      */
     @Nonnull
@@ -262,6 +264,8 @@ public class JDABuilder {
     }
 
     /**
+     * Creates a JDABuilder with low memory profile settings.
+     *
      * @see    #createLight(String)
      */
     @Nonnull
@@ -454,6 +458,8 @@ public class JDABuilder {
     }
 
     /**
+     * Creates a JDABuilder with the predefined token.
+     *
      * @see   #create(String, GatewayIntent, GatewayIntent...)
      */
     @Nonnull
@@ -495,6 +501,8 @@ public class JDABuilder {
     }
 
     /**
+     * Creates a JDABuilder with the predefined token.
+     * 
      * @see    #create(String, Collection)
      */
     @Nonnull

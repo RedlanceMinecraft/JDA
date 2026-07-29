@@ -1812,7 +1812,9 @@ public interface JDA extends IGuildChannelContainer<Channel> {
     String getToken();
 
     /**
-     * @return Account type of token.
+     * Account type of token.
+     *
+     * @return account type of token.
      */
     @Nonnull
     default AccountType getAccountType() {

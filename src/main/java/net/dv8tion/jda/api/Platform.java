@@ -12,24 +12,34 @@ public enum Platform {
     JDA("JDA"),
 
     /**
-     *
+     * Discord Client
      */
     DESKTOP("Discord Client"),
 
     /**
-     *
+     * Discord Web
      */
-    WEB("Chrome"),
+    WEB("Discord Web"),
 
     /**
-     *
+     * Discord iOS
      */
     MOBILE("Discord iOS"),
 
     /**
-     *
+     * Discord Android
      */
-    EMBEDDED("Discord Embedded");
+    ANDROID("Discord Android"),
+
+    /**
+     * Discord Embedded
+     */
+    EMBEDDED("Discord Embedded"),
+
+    /**
+     * Discord VR
+     */
+    VR("Discord VR");
 
     private final String key;
 
